@@ -26,9 +26,10 @@ exports.handler = async function(event, context) {
     };
 
   } catch (err) {
+    console.error('OpenAI error:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "API Error", details: err.message })
+      body: JSON.stringify({ reply: `Error: ${err.message}` })
     };
   }
 };
