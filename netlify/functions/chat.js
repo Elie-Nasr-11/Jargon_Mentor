@@ -20,21 +20,21 @@ exports.handler = async function(event, context) {
       ],
     });
 
+    const raw = JSON.stringify(completion.data);
     const reply = completion?.data?.choices?.[0]?.message?.content || "No response";
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply })
+      body: JSON.stringify({ reply: `✅ Reply: ${reply}\n\n🔍 Raw: ${raw}` })
     };
 
   } catch (err) {
     console.error('OpenAI error:', err);
 
-    // Diagnostic message
     return {
       statusCode: 500,
       body: JSON.stringify({ 
-        reply: `Error: ${err.message}\nOPENAI_API_KEY set: ${!!process.env.OPENAI_API_KEY}`
+        reply: `❌ Error: ${err.message}\n🧪 API Key set: ${!!process.env.OPENAI_API_KEY}`
       })
     };
   }
