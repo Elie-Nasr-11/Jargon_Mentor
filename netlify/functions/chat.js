@@ -20,9 +20,11 @@ exports.handler = async function(event, context) {
       ],
     });
 
+    const reply = completion?.data?.choices?.[0]?.message?.content || "No response";
+    
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply: completion.data.choices[0].message.content })
+      body: JSON.stringify({ reply })
     };
 
   } catch (err) {
