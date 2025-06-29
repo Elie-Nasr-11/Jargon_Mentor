@@ -45,7 +45,7 @@
     }
 
     #chat-container.flash {
-      border: 2px solid var(--green);
+      border: 2px solid #00cc66;
     }
 
     .user {
@@ -75,7 +75,6 @@
     }
 
     textarea {
-      resize: none;
       padding: 1em;
       font-family: 'Source Code Pro', monospace;
       font-size: 14px;
@@ -83,12 +82,13 @@
       border: none;
       outline: none;
       border: 2px solid transparent;
-      transition: border 0.3s ease;
-      overflow-wrap: break-word;
-      max-height: 150px;
+      resize: none;
       overflow-y: auto;
-      min-height: 50px;
-      line-height: 1.5em;
+      max-height: 90px;
+      min-height: 48px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      transition: border 0.3s ease;
     }
 
     textarea.flash-border {
@@ -117,30 +117,43 @@
       color: white;
     }
 
+    code {
+      font-family: 'Source Code Pro', monospace;
+      color: var(--green);
+    }
+
     pre {
       font-family: 'Source Code Pro', monospace;
-      padding: 12px;
+      background: none;
+      padding: 10px;
       overflow-x: auto;
       color: var(--green);
-      position: relative;
-      margin-bottom: 1.5em;
       border: 2px solid var(--green);
+      margin-top: 1em;
+      margin-bottom: 1em;
+      position: relative;
     }
 
     .copy-button {
+      display: block;
       background: transparent;
-      color: var(--accent);
-      font-weight: bold;
       border: none;
       border-bottom: 2px solid var(--accent);
-      margin-top: 10px;
+      color: var(--accent);
       font-family: 'Poppins', sans-serif;
+      font-weight: bold;
+      padding: 6px 10px;
       cursor: pointer;
+      margin-top: 0.5em;
     }
 
     .copy-button:hover {
       background: var(--accent);
       color: white;
+    }
+
+    .flash-border-box {
+      border: 2px solid var(--green) !important;
     }
 
     ::-webkit-scrollbar {
@@ -158,7 +171,7 @@
     <div id="chat-container"></div>
 
     <form id="chat-form">
-      <textarea id="user-input" rows="1" placeholder="Message Jargon"></textarea>
+      <textarea id="user-input" placeholder="Message Jargon" rows="1"></textarea>
       <button type="submit">Send</button>
     </form>
   </div>
@@ -440,14 +453,12 @@ TRUNCATED FOR SPACE
       contentDiv.style.fontWeight = '300';
       contentDiv.style.whiteSpace = 'pre-wrap';
 
-      // Format triple backtick code blocks and copy buttons
-      const codeBlockRegex = /```([^`]+)```/gs;
-      let formattedText = text.replace(codeBlockRegex, (match, code) => {
-        return `<pre><code>${code}</code><button class="copy-button">Copy</button></pre>`;
-      });
-
-      // Format inline code
-      formattedText = formattedText.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Code blocks with copy button
+      const formattedText = text
+        .replace(/```([\s\S]*?)```/g, (_, code) => {
+          return `<pre><code>${code.trim()}</code></pre><button class="copy-button">Copy</button>`;
+        })
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
 
       if (animated && role === "assistant") {
         let index = 0;
@@ -479,15 +490,18 @@ TRUNCATED FOR SPACE
       const buttons = document.querySelectorAll(".copy-button");
       buttons.forEach(btn => {
         btn.onclick = () => {
-          const code = btn.previousElementSibling.innerText;
-          navigator.clipboard.writeText(code).then(() => {
-            btn.innerText = "Copied!";
-            btn.style.borderColor = "#27c147";
-            setTimeout(() => {
-              btn.innerText = "Copy";
-              btn.style.borderColor = "#c42d88";
-            }, 1000);
-          });
+          const codeBlock = btn.previousElementSibling;
+          if (codeBlock && codeBlock.tagName.toLowerCase() === 'pre') {
+            const code = codeBlock.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+              codeBlock.classList.add("flash-border-box");
+              btn.innerText = "Copied!";
+              setTimeout(() => {
+                btn.innerText = "Copy";
+                codeBlock.classList.remove("flash-border-box");
+              }, 1000);
+            });
+          }
         };
       });
     }
@@ -518,11 +532,6 @@ TRUNCATED FOR SPACE
     }
 
     document.getElementById("chat-form").addEventListener("submit", sendMessage);
-
-    inputField.addEventListener("input", function () {
-      this.style.height = "auto";
-      this.style.height = (this.scrollHeight > 150 ? 150 : this.scrollHeight) + "px";
-    });
 
     inputField.addEventListener("keydown", function(e) {
       if (e.key === "Enter" && !e.shiftKey) {
