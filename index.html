@@ -1,4 +1,3 @@
-<!-- FULL HTML CODE -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,8 +23,8 @@
       font-family: 'Poppins', sans-serif;
       background: var(--bg);
       color: var(--text);
-      font-size: 15px;
-      line-height: 1.45;
+      font-size: 16px;
+      line-height: 1.4;
     }
 
     .container {
@@ -46,8 +45,8 @@
       border: 2px solid transparent;
       transition: border 0.3s ease;
       white-space: pre-wrap;
-      font-size: 15px;
-      line-height: 1.4;
+      font-size: 14.5px;
+      line-height: 1.5;
     }
 
     #chat-container.flash {
@@ -75,7 +74,9 @@
       display: flex;
       flex-direction: column;
       gap: 1em;
-      margin-top: 30px;
+      margin-top: 40px;
+      position: relative;
+      top: 0;
     }
 
     textarea {
@@ -86,12 +87,12 @@
       border: none;
       outline: none;
       resize: none;
-      overflow: auto;
+      overflow-y: auto;
       min-height: 20px;
-      max-height: 150px;
+      max-height: 130px;
+      line-height: 1.5;
       border: 2px solid transparent;
       transition: border 0.3s ease;
-      line-height: 1.4;
     }
 
     textarea.flash-border {
@@ -137,7 +138,8 @@
       overflow-x: auto;
       color: var(--green);
       position: relative;
-      margin: 8px 0;
+      margin: 12px 0 8px;
+      white-space: pre-wrap;
     }
 
     .copy-button {
@@ -170,6 +172,7 @@
 <body>
   <div class="container">
     <div id="chat-container"></div>
+
     <form id="chat-form">
       <textarea id="user-input" placeholder="Message Jargon" rows="1"></textarea>
       <button type="submit">Send</button>
@@ -454,22 +457,25 @@ TRUNCATED FOR SPACE
       contentDiv.style.whiteSpace = 'pre-wrap';
 
       let formattedText = text
-        .replace(/```(\w+)?\n([\s\S]+?)```/g, (_, lang, code) =>
+        .replace(/```(\w+)?\n?([^`]+)```/gs, (_, lang, code) =>
           `<pre><code>${lang ? lang + '\n' : ''}${code}</code></pre><button class="copy-button">Copy</button>`)
         .replace(/`([^`]+)`/g, '<code>$1</code>');
 
       if (animated && role === "assistant") {
-        chatContainer.classList.add("flash");
         let index = 0;
+        const full = formattedText;
+        chatContainer.classList.add("flash");
+
         function typeChar() {
-          contentDiv.innerHTML = formattedText.slice(0, index++);
+          contentDiv.innerHTML = full.slice(0, index++);
           chatContainer.scrollTop = chatContainer.scrollHeight;
-          if (index <= formattedText.length) requestAnimationFrame(typeChar);
+          if (index <= full.length) requestAnimationFrame(typeChar);
           else {
             chatContainer.classList.remove("flash");
             setTimeout(addCopyListeners, 100);
           }
         }
+
         requestAnimationFrame(typeChar);
       } else {
         contentDiv.innerHTML = formattedText;
@@ -485,11 +491,12 @@ TRUNCATED FOR SPACE
       const buttons = document.querySelectorAll(".copy-button");
       buttons.forEach(btn => {
         btn.onclick = () => {
-          const codeBlock = btn.previousElementSibling;
-          if (codeBlock && codeBlock.tagName === "CODE") {
+          const codeBlock = btn.previousElementSibling.querySelector("code");
+          if (codeBlock) {
             navigator.clipboard.writeText(codeBlock.innerText)
               .then(() => {
                 btn.innerText = "Copied!";
+                btn.style.borderColor = "var(--accent)";
                 setTimeout(() => btn.innerText = "Copy", 1000);
               });
           }
@@ -524,14 +531,20 @@ TRUNCATED FOR SPACE
 
     document.getElementById("chat-form").addEventListener("submit", sendMessage);
 
-    inputField.addEventListener("keydown", function(e) {
-      if (e.key === "Enter" && !e.shiftKey) return; // allow default enter
-      if (e.key === "Tab") {
+    inputField.addEventListener("input", function () {
+      this.style.height = "auto";
+      this.style.height = Math.min(this.scrollHeight, 130) + "px";
+    });
+
+    inputField.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById("chat-form").requestSubmit();
+      } else if (e.key === "Tab") {
         e.preventDefault();
         const start = this.selectionStart;
         const end = this.selectionEnd;
-        this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = start + 1;
+        this.setRangeText("  ", start, end, "end");
       }
     });
   </script>
