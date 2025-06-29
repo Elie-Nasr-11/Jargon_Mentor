@@ -1,204 +1,517 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Jargon Mentor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;700&family=Fira+Code&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&family=Source+Code+Pro&display=swap" rel="stylesheet"/>
   <style>
-    body {
+    :root {
+      --bg: white;
+      --text: #0077cc;
+      --accent: #c42d88;
+      --green: #27c147;
+    }
+
+    * {
+      box-sizing: border-box;
+      border-radius: 0 !important;
+    }
+
+    html, body {
       margin: 0;
-      padding: 2rem;
       font-family: 'Poppins', sans-serif;
-      background-color: #ffffff;
-      color: #333;
+      background: var(--bg);
+      color: var(--text);
     }
 
-    .chat-container {
-      max-width: 800px;
-      margin: auto;
+    .container {
+      width: 90%;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 0;
     }
 
-    .chat-log {
-      padding: 1rem;
-      background-color: #fff;
-      border: 2px solid transparent;
+    #chat-container {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 300;
+      height: 400px;
       overflow-y: auto;
-      max-height: 70vh;
-      transition: border 0.3s ease-in-out;
+      background: #ffffff;
+      padding: 1em;
+      border: 2px solid transparent;
+      transition: border 0.3s ease;
+      white-space: pre-wrap;
     }
 
-    .chat-log.flash {
+    #chat-container.flash {
       border: 2px solid #00cc66;
     }
 
-    .chat-entry {
-      margin-bottom: 2rem;
-      line-height: 1.6;
-      letter-spacing: 0.02em;
+    .user, .assistant {
+      margin: 1.2em 0;
+      font-weight: bold;
+      letter-spacing: 0.5px;
     }
 
     .user {
-      font-weight: 700;
-      color: #e91e63;
+      color: var(--accent);
     }
 
-    .mentor {
-      font-weight: 700;
-      color: #2196f3;
+    .assistant {
+      color: var(--text);
     }
 
-    .mentor-response {
-      color: #2196f3;
-      font-weight: 400;
-      font-family: 'Poppins', sans-serif;
+    .older {
+      font-size: 0.85em;
+      opacity: 0.8;
     }
 
-    .chat-entry pre {
-      background-color: #f0f0f0;
-      font-family: 'Fira Code', monospace;
-      color: #008000;
-      padding: 1rem;
-      white-space: pre-wrap;
-      overflow-x: auto;
-      border-left: 3px solid #00cc66;
-      border-radius: 0;
-    }
-
-    .input-area {
+    form {
       display: flex;
       flex-direction: column;
-      margin-top: 2rem;
+      gap: 1em;
+      margin-top: 20px;
     }
 
-    textarea {
-      font-family: 'Poppins', sans-serif;
-      font-size: 1rem;
-      padding: 0.75rem;
+    input[type="text"] {
+      padding: 1em;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 14px;
+      color: var(--green);
       border: none;
-      border-bottom: 2px solid #e91e63;
       outline: none;
-      resize: vertical;
-      min-height: 60px;
-      transition: border 0.2s ease;
-      color: #333;
-      background-color: white;
+      border: 2px solid transparent;
+      transition: border 0.3s ease;
     }
 
-    textarea::placeholder {
-      color: #00cc66;
+    input.flash-border {
+      border: 2px solid var(--accent) !important;
     }
 
-    textarea.flash-border {
-      border-bottom: 2px solid #e91e63;
-      animation: flash-pink 0.3s ease-in-out;
-    }
-
-    @keyframes flash-pink {
-      from { border-bottom-color: #e91e63; }
-      to { border-bottom-color: #ccc; }
+    input::placeholder {
+      color: var(--green);
     }
 
     button {
+      width: 100px;
       align-self: flex-start;
-      margin-top: 0.5rem;
-      background: none;
+      padding: 12px 24px;
       border: none;
+      border-bottom: 2px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
       font-weight: bold;
-      color: #e91e63;
-      border-bottom: 2px solid #e91e63;
-      cursor: pointer;
       font-family: 'Poppins', sans-serif;
-      font-size: 1rem;
+      cursor: pointer;
     }
 
     button:hover {
-      opacity: 0.7;
+      background: var(--accent);
+      color: white;
+    }
+
+    code {
+      font-family: 'Source Code Pro', monospace;
+      background: #f5f5f5;
+      padding: 2px 4px;
+      color: var(--green);
+    }
+
+    pre {
+      font-family: 'Source Code Pro', monospace;
+      background: #f5f5f5;
+      padding: 10px;
+      overflow-x: auto;
+      color: var(--green);
+      position: relative;
+      margin-top: 8px;
+    }
+
+    .copy-button {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--green);
+      color: white;
+      border: none;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: var(--text);
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div id="chat-log" class="chat-log"></div>
-    <div class="input-area">
-      <textarea id="user-input" placeholder="Message Jargon"></textarea>
-      <button onclick="handleSend()">Send</button>
-    </div>
+  <div class="container">
+    <div id="chat-container"></div>
+
+    <form id="chat-form">
+      <input id="user-input" type="text" placeholder="Message Jargon" />
+      <button type="submit">Send</button>
+    </form>
   </div>
 
   <script>
-    const chatLog = document.getElementById("chat-log");
-    const userInput = document.getElementById("user-input");
+    const chatContainer = document.getElementById("chat-container");
+    const inputField = document.getElementById("user-input");
 
-    let conversation = [];
+    let chatHistory = [
+      {
+        role: "system",
+        content: `You are the Jargon Mentor — a warm, curious, slightly strict guide who teaches students how to think clearly and logically using simple pseudocode (Jargon) and step-by-step reasoning.
 
-    function addChatEntry(role, text) {
-      const entry = document.createElement("div");
-      entry.className = "chat-entry";
+Your role is not just to help with code — you are a logic coach who builds students’ ability to think in structured steps.
 
-      const label = document.createElement("div");
-      label.className = role === "user" ? "user" : "mentor";
-      label.textContent = role === "user" ? "You:" : "Jargon Mentor:";
+Your mission is to:
+- Train students to think algorithmically
+- Help them express tasks, decisions, and problems in structured steps
+- Transition them from natural speech → pseudocode → Jargon syntax → Python (if ready)
+- Encourage clarity of thought over technical correctness
 
-      const message = document.createElement("div");
-      if (text.includes("```")) {
-        const parts = text.split("```");
-        message.innerHTML = parts.map((part, index) => {
-          return index % 2 === 0
-            ? `<div class="mentor-response">${part.trim()}</div>`
-            : `<pre>${part.trim()}</pre>`;
-        }).join("");
+Your tone is:
+- Inviting, kind, curious, and open
+- Firm — you do not allow vague or rushed logic to slide
+- Supportive — you reward effort, clarity, and curiosity more than correctness
+
+Your rules:
+- Always make sure to know what level your student is, as well as their name at the start of the conversation
+- Never solve the problem outright unless they’ve tried with clear progress
+- Never write full solutions without guiding step-by-step thinking first
+- Always ask open-ended reflection questions after your answers to guide progress
+- Use short responses and pause for the student to reply allowing your questions and their responses to guide the conversation 
+- Do not use emojis!!
+- Do not ignore incorrect logic — always help revise
+
+You teach using these tiers:
+Tier 0: Natural speech (verbal logic)
+Tier 1: Simple pseudocode (“if”, “repeat”, “then”, “end”)
+Tier 2: Jargon syntax (structured pseudocode)
+Tier 3: Python bridge (compare Jargon to Python syntax)
+
+You may use the following syntax in Jargon:
+
+TASK: Describe the overall goal
+INPUT: What is needed
+STEP 1: ...
+IF ... THEN ...
+REPEAT ... UNTIL ...
+END
+
+Begin by asking for the student’s name and grade.
+
+Here are sample Jargon-style algorithms you should imitate:
+
+# Add Two Numbers
+SET a (3)
+SET b (5)
+SET result (a + b)
+PRINT result
+# Output:
+8
+
+# Find Maximum of Two Numbers
+SET a (9)
+SET b (4)
+IF a is greater than b THEN
+    PRINT a
+END
+IF b is greater than or equal to a THEN
+    PRINT b
+END
+# Output:
+9
+
+# Square a Number
+SET x (7)
+SET result (x * x)
+PRINT result
+# Output:
+49
+
+# Find Minimum of Two Numbers
+SET a (9)
+SET b (4)
+IF a is less than b THEN
+    PRINT a
+END
+IF b is less than or equal to a THEN
+    PRINT b
+END
+# Output:
+4
+
+# Check Even or Odd
+SET num (7)
+IF (num % 2) is equal to 0 THEN
+    PRINT "Even"
+END
+IF (num % 2) is not equal to 0 THEN
+    PRINT "Odd"
+END
+# Output:
+Odd
+
+# Average of a List
+SET nums ([2, 4, 6])
+SET total (0)
+SET i (0)
+REPEAT_UNTIL i reaches end of nums
+    SET total (total + nums[i])
+    SET i (i + 1)
+END
+SET average (total / 3)
+PRINT average
+# Output:
+4
+
+# Count Even Numbers in a List
+SET nums ([1, 2, 4, 7, 8])
+SET count (0)
+SET i (0)
+REPEAT_UNTIL i reaches end of nums
+    IF (nums[i] % 2) is equal to 0 THEN
+        SET count (count + 1)
+    END
+    SET i (i + 1)
+END
+PRINT count
+# Output:
+3
+
+# Reverse a List
+SET nums ([1, 2, 3, 4])
+SET reversed ([])
+SET i (3)
+REPEAT_UNTIL i is less than 0
+    ADD nums[i] to reversed
+    SET i (i - 1)
+END
+PRINT reversed
+# Output:
+[4, 3, 2, 1]
+
+# Linear Search
+SET nums ([5, 3, 8, 2, 9])
+SET target (8)
+SET index (-1)
+SET i (0)
+REPEAT_UNTIL i reaches end of nums
+    IF nums[i] is equal to target THEN
+        SET index (i)
+    END
+    SET i (i + 1)
+END
+PRINT index
+# Output:
+2
+
+# Find Minimum in List
+SET nums ([5, 3, 8, 2, 9])
+SET min (nums[0])
+SET i (1)
+REPEAT_UNTIL i reaches end of nums
+    IF nums[i] is less than min THEN
+        SET min (nums[i])
+    END
+    SET i (i + 1)
+END
+PRINT min
+# Output:
+2
+
+# Count Occurrences of Element
+SET nums ([2, 3, 2, 2, 5])
+SET target (2)
+SET count (0)
+SET i (0)
+REPEAT_UNTIL i reaches end of nums
+    IF nums[i] is equal to target THEN
+        SET count (count + 1)
+    END
+    SET i (i + 1)
+END
+PRINT count
+# Output:
+3
+
+# Generate Fibonacci Sequence
+SET fib ([0, 1])
+SET i (2)
+REPEAT_UNTIL i is equal to 10
+    SET next (fib[i - 1] + fib[i - 2])
+    ADD next to fib
+    SET i (i + 1)
+END
+PRINT fib
+# Output:
+[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+# Selection Sort
+SET nums ([5, 3, 8, 2, 9])
+SET sorted ([])
+SET i (0)
+REPEAT_UNTIL i reaches end of nums
+    SET j (0)
+    SET min_index (0)
+    REPEAT_UNTIL j reaches end of nums
+        IF nums[j] is less than nums[min_index] THEN
+            SET min_index (j)
+        END
+        SET j (j + 1)
+    END
+    ADD nums[min_index] to sorted
+    SET new_nums ([])
+    SET k (0)
+    REPEAT_UNTIL k reaches end of nums
+        IF k is not equal to min_index THEN
+            ADD nums[k] to new_nums
+        END
+        SET k (k + 1)
+    END
+    SET nums (new_nums)
+    SET i (i + 1)
+END
+PRINT sorted
+# Output:
+[2, 3, 5, 8, 9]
+
+# Quick Sort (One-Level Partition)
+SET list ([5, 3, 8, 2, 9])
+SET pivot (list[0])
+SET less ([])
+SET greater_equal ([])
+SET i (1)
+REPEAT_UNTIL i is equal to 5
+    IF list[i] is less than pivot THEN
+        ADD list[i] to less
+    END
+    IF list[i] is greater than or equal to pivot THEN
+        ADD list[i] to greater_equal
+    END
+    SET i (i + 1)
+END
+SET partitioned ([])
+SET j (0)
+REPEAT_UNTIL j reaches end of less
+    ADD less[j] to partitioned
+    SET j (j + 1)
+END
+ADD pivot to partitioned
+SET j (0)
+REPEAT_UNTIL j reaches end of greater_equal
+    ADD greater_equal[j] to partitioned
+    SET j (j + 1)
+END
+PRINT partitioned
+# Output:
+[3, 2, 5, 8, 9]
+
+# Dijkstraâs Shortest Path Algorithm
+TRUNCATED FOR SPACE
+# Output:
+[0, 10, 50, 30, 60]`
+      }
+    ];
+
+    function appendMessage(role, text, animated = false) {
+      const div = document.createElement("div");
+      const label = (role === "user") ? "You: " : "Jargon Mentor: ";
+      const className = (role === "user") ? "user" : "assistant";
+
+      const previous = chatContainer.querySelectorAll("div");
+      previous.forEach(el => el.classList.add("older"));
+
+      div.className = className;
+      div.innerText = label;
+
+      const contentDiv = document.createElement("div");
+      contentDiv.style.fontWeight = '300';
+      contentDiv.style.whiteSpace = 'pre-wrap';
+      contentDiv.style.fontFamily = 'Poppins, sans-serif';
+
+      const formattedText = text
+        .replace(/```([^`]+)```/gs, '<pre><code>$1</code><button class="copy-button">Copy</button></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
+
+      if (animated && role === "assistant") {
+        let index = 0;
+        function typeChar() {
+          contentDiv.innerHTML = formattedText.slice(0, index++);
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          if (index < formattedText.length) {
+            requestAnimationFrame(typeChar);
+          }
+        }
+        requestAnimationFrame(typeChar);
       } else {
-        message.className = "mentor-response";
-        message.textContent = text;
+        contentDiv.innerHTML = formattedText;
       }
 
-      entry.appendChild(label);
-      entry.appendChild(message);
-      chatLog.appendChild(entry);
-      chatLog.scrollTop = chatLog.scrollHeight;
-    }
+      div.appendChild(contentDiv);
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
 
-    async function handleSend() {
-      const input = userInput.value.trim();
-      if (!input) return;
-      userInput.value = "";
-      flashTextArea();
-
-      addChatEntry("user", input);
-      conversation.push({ role: "user", content: input });
-
-      try {
-        const response = await fetch("/.netlify/functions/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: conversation }),
-        });
-
-        const data = await response.json();
-        const reply = data.reply;
-        addChatEntry("mentor", reply);
-        flashChatBorder();
-        conversation.push({ role: "assistant", content: reply });
-      } catch (error) {
-        addChatEntry("mentor", "Oops! Something went wrong.");
+      if (role === "assistant") {
+        chatContainer.classList.add("flash");
+        setTimeout(() => chatContainer.classList.remove("flash"), 300);
       }
+
+      setTimeout(addCopyListeners, 100);
     }
 
-    function flashChatBorder() {
-      chatLog.classList.add("flash");
-      setTimeout(() => chatLog.classList.remove("flash"), 300);
+    function addCopyListeners() {
+      const buttons = document.querySelectorAll(".copy-button");
+      buttons.forEach(btn => {
+        btn.onclick = () => {
+          const code = btn.previousElementSibling.innerText;
+          navigator.clipboard.writeText(code);
+          btn.innerText = "Copied!";
+          setTimeout(() => btn.innerText = "Copy", 1000);
+        };
+      });
     }
 
-    function flashTextArea() {
-      userInput.classList.add("flash-border");
-      setTimeout(() => userInput.classList.remove("flash-border"), 300);
+    async function sendMessage(event) {
+      event.preventDefault();
+      const message = inputField.value.trim();
+      if (!message) return;
+
+      appendMessage("user", message);
+      chatHistory.push({ role: "user", content: message });
+
+      inputField.value = "";
+      inputField.classList.add("flash-border");
+      setTimeout(() => inputField.classList.remove("flash-border"), 300);
+
+      const res = await fetch("/.netlify/functions/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: chatHistory })
+      });
+
+      const data = await res.json();
+      const reply = data.reply;
+
+      appendMessage("assistant", reply, true);
+      chatHistory.push({ role: "assistant", content: reply });
     }
 
-    userInput.addEventListener("keypress", function (e) {
+    document.getElementById("chat-form").addEventListener("submit", sendMessage);
+
+    inputField.addEventListener("keydown", function(e) {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        handleSend();
+        document.getElementById("chat-form").requestSubmit();
       }
     });
   </script>
