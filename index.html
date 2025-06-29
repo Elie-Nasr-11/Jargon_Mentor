@@ -30,12 +30,15 @@
       max-width: 900px;
       margin: 0 auto;
       padding: 40px 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     #chat-container {
       font-family: 'Poppins', sans-serif;
       font-weight: 300;
-      height: 600px;
+      flex-grow: 1;
       overflow-y: auto;
       background: #ffffff;
       padding: 1em;
@@ -45,7 +48,7 @@
     }
 
     #chat-container.flash {
-      border: 2px solid #00cc66;
+      border: 2px solid var(--green);
     }
 
     .user {
@@ -71,7 +74,8 @@
       display: flex;
       flex-direction: column;
       gap: 1em;
-      margin-top: 100px;
+      margin-top: 20px;
+      padding-bottom: 25px;
     }
 
     textarea {
@@ -82,13 +86,12 @@
       border: none;
       outline: none;
       border: 2px solid transparent;
-      resize: none;
-      overflow-y: auto;
-      max-height: 90px;
-      min-height: 48px;
-      line-height: 1.4;
-      word-wrap: break-word;
       transition: border 0.3s ease;
+      resize: none;
+      min-height: 3em;
+      max-height: 6em;
+      overflow-y: auto;
+      line-height: 1.4em;
     }
 
     textarea.flash-border {
@@ -119,41 +122,36 @@
 
     code {
       font-family: 'Source Code Pro', monospace;
+      background: none;
       color: var(--green);
     }
 
     pre {
       font-family: 'Source Code Pro', monospace;
-      background: none;
+      border: 2px solid var(--green);
       padding: 10px;
       overflow-x: auto;
       color: var(--green);
-      border: 2px solid var(--green);
-      margin-top: 1em;
-      margin-bottom: 1em;
       position: relative;
+      margin-bottom: 10px;
+      background: none;
     }
 
     .copy-button {
-      display: block;
-      background: transparent;
+      margin-top: 4px;
+      padding: 12px 24px;
       border: none;
       border-bottom: 2px solid var(--accent);
+      background: transparent;
       color: var(--accent);
-      font-family: 'Poppins', sans-serif;
       font-weight: bold;
-      padding: 6px 10px;
+      font-family: 'Poppins', sans-serif;
       cursor: pointer;
-      margin-top: 0.5em;
     }
 
     .copy-button:hover {
       background: var(--accent);
       color: white;
-    }
-
-    .flash-border-box {
-      border: 2px solid var(--green) !important;
     }
 
     ::-webkit-scrollbar {
@@ -171,7 +169,7 @@
     <div id="chat-container"></div>
 
     <form id="chat-form">
-      <textarea id="user-input" placeholder="Message Jargon" rows="1"></textarea>
+      <textarea id="user-input" placeholder="Message Jargon"></textarea>
       <button type="submit">Send</button>
     </form>
   </div>
@@ -453,12 +451,11 @@ TRUNCATED FOR SPACE
       contentDiv.style.fontWeight = '300';
       contentDiv.style.whiteSpace = 'pre-wrap';
 
-      // Code blocks with copy button
-      const formattedText = text
-        .replace(/```([\s\S]*?)```/g, (_, code) => {
-          return `<pre><code>${code.trim()}</code></pre><button class="copy-button">Copy</button>`;
-        })
-        .replace(/`([^`]+)`/g, '<code>$1</code>');
+      let formattedText = text
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/```([^`]+)```/gs, (match, code) => {
+          return `<pre><code>${code}</code></pre><button class="copy-button">Copy</button>`;
+        });
 
       if (animated && role === "assistant") {
         let index = 0;
@@ -490,17 +487,16 @@ TRUNCATED FOR SPACE
       const buttons = document.querySelectorAll(".copy-button");
       buttons.forEach(btn => {
         btn.onclick = () => {
-          const codeBlock = btn.previousElementSibling;
-          if (codeBlock && codeBlock.tagName.toLowerCase() === 'pre') {
-            const code = codeBlock.innerText;
-            navigator.clipboard.writeText(code).then(() => {
-              codeBlock.classList.add("flash-border-box");
-              btn.innerText = "Copied!";
-              setTimeout(() => {
-                btn.innerText = "Copy";
-                codeBlock.classList.remove("flash-border-box");
-              }, 1000);
-            });
+          const codeEl = btn.previousElementSibling.querySelector("code");
+          if (codeEl) {
+            navigator.clipboard.writeText(codeEl.textContent);
+            btn.innerText = "Copied!";
+            btn.style.border = "2px solid var(--green)";
+            setTimeout(() => {
+              btn.innerText = "Copy";
+              btn.style.border = "none";
+              btn.style.borderBottom = "2px solid var(--accent)";
+            }, 1000);
           }
         };
       });
