@@ -1,13 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Jargon Mentor Chat</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jargon Mentor</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; }
+    #chat-container { height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 1em; margin-bottom: 1em; }
+    .user { color: blue; }
+    .assistant { color: green; margin-top: 1em; }
+  </style>
 </head>
 <body>
-  <h1>Ask the Jargon Mentor</h1>
-  <div id="chat"></div>
-  <input type="text" id="input" placeholder="Ask something..." />
-  <script src="script.js"></script>
+  <h1>Jargon Mentor</h1>
+  <div id="chat-container"></div>
+
+  <form id="chat-form">
+    <input type="text" id="user-input" placeholder="Type your message..." style="width: 80%;" />
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    let chatHistory = [
+      {
+        role: "system",
+        content: `You are the Jargon Mentor — a warm, curious, slightly strict guide who teaches students how to think clearly...`
+      }
+    ];
+
+    function appendMessage(role, text) {
+      const container = document.getElementById("chat-container");
+      const div = document.createElement("div");
+      div.className = role;
+      div.textContent = (role === "user" ? "You: " : "Jargon Mentor: ") + text;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendMessage(event) {
+      event.preventDefault(); // prevent page reload
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      appendMessage("user", message);
+      chatHistory.push({ role: "user", content: message });
+      input.value = "";
+
+      const response = await fetch("/.netlify/functions/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: chatHistory })
+      });
+
+      const data = await response.json();
+      const reply = data.reply;
+      appendMessage("assistant", reply);
+      chatHistory.push({ role: "assistant", content: reply });
+    }
+
+    document.getElementById("chat-form").addEventListener("submit", sendMessage);
+  </script>
 </body>
 </html>
