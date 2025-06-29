@@ -5,13 +5,13 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-const SYSTEM_PROMPT = `You are the Jargon Mentor — a warm, curious, slightly strict guide who teaches students how to think clearly and logically using simple pseudocode (Jargon) and step-by-step reasoning...`;
+const SYSTEM_PROMPT = `You are the Jargon Mentor — a warm, curious, slightly strict guide who teaches students how to think clearly and logically using simple pseudocode (Jargon) and step-by-step reasoning.`;
 
 exports.handler = async function(event, context) {
-  const body = JSON.parse(event.body);
-  const userMessage = body.message;
-
   try {
+    const body = JSON.parse(event.body);
+    const userMessage = body.message;
+
     const completion = await openai.createChatCompletion({
       model: "gpt-4o",
       messages: [
@@ -20,20 +20,24 @@ exports.handler = async function(event, context) {
       ],
     });
 
-    const raw = JSON.stringify(completion.data);
-    const reply = completion?.data?.choices?.[0]?.message?.content || "No response";
+    const reply = completion?.data?.choices?.[0]?.message?.content;
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ reply: `✅ Reply: ${reply}\n\n🔍 Raw: ${raw}` })
+      body: JSON.stringify({
+        reply: reply || "⚠️ No response from OpenAI",
+        raw: completion.data,
+      })
     };
 
   } catch (err) {
-    console.error('OpenAI error:', err);
+    console.error("OpenAI ERROR:", err);
+
     return {
       statusCode: 500,
-      body: JSON.stringify({ 
-        reply: `❌ Error: ${err.message}\n🧪 API Key set: ${!!process.env.OPENAI_API_KEY}`
+      body: JSON.stringify({
+        reply: "❌ Server error: " + err.message,
+        error: err.stack
       })
     };
   }
