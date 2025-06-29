@@ -91,7 +91,7 @@
     }
 
     textarea.flash-border {
-      border: 2px solid var(--green) !important;
+      border: 2px solid var(--accent) !important;
     }
 
     textarea::placeholder {
@@ -131,7 +131,7 @@
       overflow-x: auto;
       color: var(--green);
       position: relative;
-      margin: 24px 0 12px;
+      margin: 12px 0 8px;
     }
 
     .copy-button {
@@ -139,11 +139,11 @@
       border: none;
       border-bottom: 2px solid var(--accent);
       color: var(--accent);
-      padding: 8px 24px;
+      padding: 12px 24px;
       font-weight: bold;
       font-family: 'Poppins', sans-serif;
       cursor: pointer;
-      margin-bottom: 40px;
+      margin-bottom: 20px;
     }
 
     .copy-button:hover {
@@ -448,12 +448,25 @@ TRUNCATED FOR SPACE
       contentDiv.style.fontWeight = '300';
       contentDiv.style.whiteSpace = 'pre-wrap';
 
-      const formattedText = text
+      let formattedText = text
         .replace(/```([^`]+)```/gs, (_, code) =>
           `<pre><code>${code}</code></pre><button class="copy-button">Copy</button>`)
         .replace(/`([^`]+)`/g, '<code>$1</code>');
 
-      contentDiv.innerHTML = formattedText;
+      if (animated && role === "assistant") {
+        let index = 0;
+        const full = formattedText;
+        function typeChar() {
+          contentDiv.innerHTML = full.slice(0, index++);
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          if (index <= full.length) requestAnimationFrame(typeChar);
+          else setTimeout(addCopyListeners, 100);
+        }
+        requestAnimationFrame(typeChar);
+      } else {
+        contentDiv.innerHTML = formattedText;
+        setTimeout(addCopyListeners, 100);
+      }
 
       div.appendChild(contentDiv);
       chatContainer.appendChild(div);
@@ -463,8 +476,6 @@ TRUNCATED FOR SPACE
         chatContainer.classList.add("flash");
         setTimeout(() => chatContainer.classList.remove("flash"), 300);
       }
-
-      setTimeout(addCopyListeners, 100);
     }
 
     function addCopyListeners() {
@@ -476,11 +487,8 @@ TRUNCATED FOR SPACE
             navigator.clipboard.writeText(codeBlock.innerText)
               .then(() => {
                 btn.innerText = "Copied!";
-                btn.style.borderColor = "#00cc66";
-                setTimeout(() => {
-                  btn.innerText = "Copy";
-                  btn.style.borderColor = "var(--accent)";
-                }, 1200);
+                btn.style.borderColor = "var(--accent)";
+                setTimeout(() => btn.innerText = "Copy", 1000);
               });
           }
         };
@@ -508,7 +516,7 @@ TRUNCATED FOR SPACE
       const data = await res.json();
       const reply = data.reply;
 
-      appendMessage("assistant", reply);
+      appendMessage("assistant", reply, true);
       chatHistory.push({ role: "assistant", content: reply });
     }
 
