@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jargon Mentor</title>
+  <style>
+    body {
+      font-family: "Open Sans", sans-serif;
+      background-color: #fff;
+      color: #333;
+      padding: 20px;
+    }
+
+    .chatbox {
+      background: white;
+      border: 2px solid transparent;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      overflow-y: auto;
+      height: 400px;
+      resize: none;
+      scrollbar-width: thin;
+      scrollbar-color: #2196f3 transparent;
+    }
+
+    .chatbox::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chatbox::-webkit-scrollbar-thumb {
+      background: #2196f3;
+      border-radius: 3px;
+    }
+
+    .message {
+      margin-bottom: 18px;
+      letter-spacing: 0.5px;
+      line-height: 1.6;
+    }
+
+    .user {
+      color: #e91e63;
+      font-weight: bold;
+      font-size: 0.95em;
+    }
+
+    .bot {
+      color: #2196f3;
+      font-weight: bold;
+      font-size: 0.95em;
+    }
+
+    .last-message .user,
+    .last-message .bot {
+      font-size: 1.1em;
+    }
+
+    #input-box {
+      width: 100%;
+      margin-top: 30px;
+      border: none;
+      border-bottom: 2px solid #e91e63;
+      padding: 12px;
+      font-size: 16px;
+      color: #333;
+      outline: none;
+    }
+
+    #input-box::placeholder {
+      color: #4caf50;
+    }
+
+    #input-box.flash {
+      animation: flash-border 0.3s;
+    }
+
+    @keyframes flash-border {
+      from { border-bottom: 2px solid #e91e63; }
+      to { border-bottom: 2px solid transparent; }
+    }
+
+    button {
+      margin-top: 12px;
+      background: none;
+      border: none;
+      color: #e91e63;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="chatbox" id="chatbox"></div>
+
+  <input id="input-box" placeholder="Message Jargon" />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    let lastMessage = null;
+
+    function sendMessage() {
+      const input = document.getElementById('input-box');
+      const message = input.value.trim();
+      if (!message) return;
+
+      input.classList.add('flash');
+      setTimeout(() => input.classList.remove('flash'), 300);
+
+      const chatbox = document.getElementById('chatbox');
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user-message';
+      userMsg.innerHTML = '<span class="user">You:</span> ' + message;
+      chatbox.appendChild(userMsg);
+
+      fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        body: JSON.stringify({ message }),
+      })
+      .then(res => res.json())
+      .then(data => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'message bot-message last-message';
+        botMsg.innerHTML = '<span class="bot">Jargon Mentor:</span> <span class="typing"></span>';
+        chatbox.appendChild(botMsg);
+
+        const span = botMsg.querySelector('.typing');
+        let index = 0;
+        const text = data.reply || 'No response';
+        function type() {
+          if (index < text.length) {
+            span.textContent += text.charAt(index++);
+            setTimeout(type, 20);
+          }
+        }
+        type();
+        input.value = '';
+        chatbox.scrollTop = chatbox.scrollHeight;
+      });
+    }
+  </script>
+</body>
+</html>
