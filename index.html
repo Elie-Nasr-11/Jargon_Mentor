@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Jargon Mentor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;500&family=Source+Code+Pro&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&family=Source+Code+Pro&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --bg: white;
@@ -21,27 +21,21 @@
     html, body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      font-weight: 200;
       background: var(--bg);
       color: var(--text);
-      height: 100%;
     }
 
     .container {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 100vh;
       width: 90%;
       max-width: 900px;
       margin: 0 auto;
-      padding: 20px 0;
+      padding: 40px 0 120px; /* bottom space for fixed input */
     }
 
     #chat-container {
       font-family: 'Poppins', sans-serif;
-      font-weight: 200;
-      flex: 1;
+      font-weight: 300;
+      min-height: 400px;
       overflow-y: auto;
       background: #ffffff;
       padding: 1em;
@@ -73,62 +67,14 @@
       opacity: 0.8;
     }
 
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 1em;
-      margin-top: 20px;
-      padding-bottom: 20px;
-    }
-
-    input[type="text"] {
-      padding: 1em;
-      font-family: 'Source Code Pro', monospace;
-      font-size: 14px;
-      color: var(--green);
-      border: 2px solid transparent;
-      outline: none;
-      width: 100%;
-      transition: border 0.3s ease;
-    }
-
-    input.flash-border {
-      border: 2px solid var(--accent) !important;
-    }
-
-    input::placeholder {
-      color: var(--green);
-    }
-
-    button {
-      width: 100px;
-      align-self: flex-start;
-      padding: 12px 24px;
-      border: none;
-      border-bottom: 2px solid var(--accent);
-      background: transparent;
-      color: var(--accent);
-      font-weight: bold;
-      font-family: 'Poppins', sans-serif;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: var(--accent);
-      color: white;
-    }
-
-    code {
+    .code-block {
       font-family: 'Source Code Pro', monospace;
       color: var(--green);
       white-space: pre-wrap;
-    }
-
-    pre {
-      font-family: 'Source Code Pro', monospace;
-      color: var(--green);
-      padding: 0;
-      margin: 10px 0 4px 0;
+      padding: 1rem;
+      border: 1px solid var(--green);
+      position: relative;
+      margin-bottom: 2rem;
     }
 
     .copy-button {
@@ -140,10 +86,62 @@
       font-size: 12px;
       cursor: pointer;
       font-family: 'Poppins', sans-serif;
-      margin-bottom: 20px;
+      margin-top: 1rem;
     }
 
     .copy-button:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    #chat-form {
+      position: fixed;
+      bottom: 25%;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      background: var(--bg);
+      padding: 1em 0;
+    }
+
+    #form-wrapper {
+      display: flex;
+      gap: 10px;
+      width: 90%;
+      max-width: 900px;
+    }
+
+    textarea {
+      flex: 1;
+      padding: 1em;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 14px;
+      color: var(--green);
+      border: 2px solid var(--accent);
+      outline: none;
+      max-height: 5.4em;
+      overflow-y: auto;
+      line-height: 1.8;
+      resize: none;
+    }
+
+    textarea::placeholder {
+      color: var(--green);
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-bottom: 2px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+    }
+
+    button:hover {
       background: var(--accent);
       color: white;
     }
@@ -161,12 +159,14 @@
 <body>
   <div class="container">
     <div id="chat-container"></div>
-
-    <form id="chat-form">
-      <input id="user-input" type="text" placeholder="Message Jargon" />
-      <button type="submit">Send</button>
-    </form>
   </div>
+
+  <form id="chat-form">
+    <div id="form-wrapper">
+      <textarea id="user-input" rows="1" placeholder="Message Jargon" oninput="adjustHeight(this)"></textarea>
+      <button type="submit">Send</button>
+    </div>
+  </form>
 
   <script>
     const chatContainer = document.getElementById("chat-container");
@@ -445,24 +445,25 @@ TRUNCATED FOR SPACE
       contentDiv.style.fontWeight = '300';
       contentDiv.style.whiteSpace = 'pre-wrap';
 
-      // Format content with code blocks and line breaks
-      const codeBlockRegex = /```(?:\w*\n)?([\s\S]*?)```/g;
-      let html = text.replace(codeBlockRegex, (match, code) => {
-        return `<pre><code>${code.trim()}</code></pre><button class="copy-button">Copy</button>`;
-      });
-
-      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Replace code blocks and inline code
+      let formattedText = text
+        .replace(/```([\s\S]*?)```/g, (match, code) => {
+          return `<div class="code-block"><code>${code}</code><button class="copy-button" onclick="copyText(\`${code.replace(/`/g, '\\`')}\`, this)">Copy</button></div>`;
+        })
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
 
       if (animated && role === "assistant") {
-        let i = 0;
-        function typeWriter() {
-          contentDiv.innerHTML = html.slice(0, i++);
-          chatContainer.scrollTop = chatContainer.scrollHeight;
-          if (i <= html.length) requestAnimationFrame(typeWriter);
+        let index = 0;
+        function typeChar() {
+          if (index < formattedText.length) {
+            contentDiv.innerHTML = formattedText.slice(0, index++);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            requestAnimationFrame(typeChar);
+          }
         }
-        typeWriter();
+        requestAnimationFrame(typeChar);
       } else {
-        contentDiv.innerHTML = html;
+        contentDiv.innerHTML = formattedText;
       }
 
       div.appendChild(contentDiv);
@@ -473,24 +474,22 @@ TRUNCATED FOR SPACE
         chatContainer.classList.add("flash");
         setTimeout(() => chatContainer.classList.remove("flash"), 300);
       }
-
-      setTimeout(addCopyListeners, 100);
     }
 
-    function addCopyListeners() {
-      const buttons = document.querySelectorAll(".copy-button");
-      buttons.forEach(btn => {
-        btn.onclick = () => {
-          const code = btn.previousElementSibling.innerText;
-          navigator.clipboard.writeText(code);
-          btn.innerText = "Copied!";
-          chatContainer.classList.add("flash");
-          setTimeout(() => {
-            btn.innerText = "Copy";
-            chatContainer.classList.remove("flash");
-          }, 800);
-        };
+    function copyText(text, button) {
+      navigator.clipboard.writeText(text).then(() => {
+        button.textContent = "Copied!";
+        button.parentElement.style.border = "2px solid var(--green)";
+        setTimeout(() => {
+          button.textContent = "Copy";
+          button.parentElement.style.border = "1px solid var(--green)";
+        }, 1000);
       });
+    }
+
+    function adjustHeight(el) {
+      el.style.height = "auto";
+      el.style.height = (el.scrollHeight > 90 ? 90 : el.scrollHeight) + "px";
     }
 
     async function sendMessage(event) {
@@ -502,8 +501,7 @@ TRUNCATED FOR SPACE
       chatHistory.push({ role: "user", content: message });
 
       inputField.value = "";
-      inputField.classList.add("flash-border");
-      setTimeout(() => inputField.classList.remove("flash-border"), 300);
+      adjustHeight(inputField);
 
       const res = await fetch("/.netlify/functions/chat", {
         method: "POST",
