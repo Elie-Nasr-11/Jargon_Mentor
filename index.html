@@ -36,7 +36,7 @@
     #chat-container {
       font-family: 'Poppins', sans-serif;
       font-weight: 300;
-      height: 650px;
+      height: 600px;
       overflow-y: auto;
       background: #ffffff;
       padding: 1em;
@@ -46,21 +46,19 @@
     }
 
     #chat-container.flash {
-      border: 2px solid #00cc66;
+      border: 2px solid var(--green);
     }
 
     .user {
       color: var(--accent);
       margin: 0.5em 0;
       font-weight: bold;
-      letter-spacing: 0.5px;
     }
 
     .assistant {
       color: var(--text);
       margin: 0.5em 0;
       font-weight: bold;
-      letter-spacing: 0.5px;
     }
 
     .older {
@@ -73,15 +71,8 @@
       flex-direction: column;
       gap: 1em;
       margin-top: 20px;
-      position: fixed;
-      bottom: 25%;
-      left: 0;
-      right: 0;
-      width: 90%;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-      background: white;
+      position: relative;
+      top: 0;
     }
 
     textarea {
@@ -92,7 +83,6 @@
       border: none;
       outline: none;
       resize: none;
-      height: auto;
       overflow: auto;
       min-height: 20px;
       max-height: 60px;
@@ -141,19 +131,19 @@
       overflow-x: auto;
       color: var(--green);
       position: relative;
-      margin-bottom: 1em;
+      margin: 24px 0 12px;
     }
 
     .copy-button {
-      margin-top: 0.5em;
       background: transparent;
       border: none;
       border-bottom: 2px solid var(--accent);
       color: var(--accent);
-      padding: 8px 18px;
+      padding: 8px 24px;
       font-weight: bold;
       font-family: 'Poppins', sans-serif;
       cursor: pointer;
+      margin-bottom: 40px;
     }
 
     .copy-button:hover {
@@ -460,22 +450,10 @@ TRUNCATED FOR SPACE
 
       const formattedText = text
         .replace(/```([^`]+)```/gs, (_, code) =>
-          `<pre><code>${code}</code><br><button class="copy-button">Copy</button></pre>`)
+          `<pre><code>${code}</code></pre><button class="copy-button">Copy</button>`)
         .replace(/`([^`]+)`/g, '<code>$1</code>');
 
-      if (animated && role === "assistant") {
-        let index = 0;
-        function typeChar() {
-          if (index < formattedText.length) {
-            contentDiv.innerHTML = formattedText.slice(0, index++);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            requestAnimationFrame(typeChar);
-          }
-        }
-        requestAnimationFrame(typeChar);
-      } else {
-        contentDiv.innerHTML = formattedText;
-      }
+      contentDiv.innerHTML = formattedText;
 
       div.appendChild(contentDiv);
       chatContainer.appendChild(div);
@@ -493,12 +471,18 @@ TRUNCATED FOR SPACE
       const buttons = document.querySelectorAll(".copy-button");
       buttons.forEach(btn => {
         btn.onclick = () => {
-          const code = btn.parentElement.querySelector("code").innerText;
-          navigator.clipboard.writeText(code)
-            .then(() => {
-              btn.innerText = "Copied!";
-              setTimeout(() => btn.innerText = "Copy", 1000);
-            });
+          const codeBlock = btn.previousElementSibling.querySelector("code");
+          if (codeBlock) {
+            navigator.clipboard.writeText(codeBlock.innerText)
+              .then(() => {
+                btn.innerText = "Copied!";
+                btn.style.borderColor = "#00cc66";
+                setTimeout(() => {
+                  btn.innerText = "Copy";
+                  btn.style.borderColor = "var(--accent)";
+                }, 1200);
+              });
+          }
         };
       });
     }
@@ -524,7 +508,7 @@ TRUNCATED FOR SPACE
       const data = await res.json();
       const reply = data.reply;
 
-      appendMessage("assistant", reply, true);
+      appendMessage("assistant", reply);
       chatHistory.push({ role: "assistant", content: reply });
     }
 
