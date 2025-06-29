@@ -36,14 +36,14 @@
     #chat-container {
       font-family: 'Poppins', sans-serif;
       font-weight: 300;
-      font-size: 15px;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.2;
       height: 600px;
       overflow-y: auto;
       background: #ffffff;
       padding: 1em;
       border: 2px solid transparent;
-      transition: border 0.6s ease;
+      transition: border 0.3s ease;
       white-space: pre-wrap;
     }
 
@@ -72,26 +72,22 @@
       display: flex;
       flex-direction: column;
       gap: 1em;
-      margin-top: 20px;
-      position: relative;
-      top: 0;
+      margin-top: 30px;
     }
 
     textarea {
       padding: 1em;
       font-family: 'Source Code Pro', monospace;
-      font-size: 12px;
+      font-size: 14px;
       color: var(--green);
       border: none;
       outline: none;
       resize: none;
-      overflow-y: auto;
-      height: auto;
+      overflow: auto;
       min-height: 20px;
-      max-height: 120px;
+      max-height: 60px;
       border: 2px solid transparent;
       transition: border 0.3s ease;
-      line-height: 1.4;
     }
 
     textarea.flash-border {
@@ -122,6 +118,7 @@
 
     code {
       font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
       background: transparent;
       padding: 2px 4px;
       color: var(--green);
@@ -129,13 +126,14 @@
 
     pre {
       font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
       background: transparent;
       padding: 10px;
       border: 2px solid var(--green);
       overflow-x: auto;
       color: var(--green);
       position: relative;
-      margin: 12px 0 8px;
+      margin: 8px 0;
     }
 
     .copy-button {
@@ -486,12 +484,11 @@ TRUNCATED FOR SPACE
       const buttons = document.querySelectorAll(".copy-button");
       buttons.forEach(btn => {
         btn.onclick = () => {
-          const codeBlock = btn.previousElementSibling.querySelector("code");
-          if (codeBlock) {
+          const codeBlock = btn.previousElementSibling;
+          if (codeBlock && codeBlock.tagName === "CODE") {
             navigator.clipboard.writeText(codeBlock.innerText)
               .then(() => {
                 btn.innerText = "Copied!";
-                btn.style.borderColor = "var(--accent)";
                 setTimeout(() => btn.innerText = "Copy", 1000);
               });
           }
@@ -530,7 +527,18 @@ TRUNCATED FOR SPACE
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         document.getElementById("chat-form").requestSubmit();
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 4;
       }
+    });
+
+    inputField.addEventListener("input", function () {
+      this.style.height = "auto";
+      this.style.height = Math.min(this.scrollHeight, 60) + "px";
     });
   </script>
 </body>
