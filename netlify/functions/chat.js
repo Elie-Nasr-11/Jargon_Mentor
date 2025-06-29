@@ -1,3 +1,6 @@
+console.log("Chat function started.");
+console.log("API KEY present:", !!process.env.OPENAI_API_KEY);
+
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
