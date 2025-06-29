@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Jargon Mentor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&family=Source+Code+Pro&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;500&family=Source+Code+Pro&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --bg: white;
@@ -21,21 +21,27 @@
     html, body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
+      font-weight: 200;
       background: var(--bg);
       color: var(--text);
+      height: 100%;
     }
 
     .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 100vh;
       width: 90%;
       max-width: 900px;
       margin: 0 auto;
-      padding: 40px 0;
+      padding: 20px 0;
     }
 
     #chat-container {
       font-family: 'Poppins', sans-serif;
-      font-weight: 300;
-      height: 400px;
+      font-weight: 200;
+      flex: 1;
       overflow-y: auto;
       background: #ffffff;
       padding: 1em;
@@ -48,18 +54,18 @@
       border: 2px solid #00cc66;
     }
 
-    .user, .assistant {
-      margin: 1.2em 0;
+    .user {
+      color: var(--accent);
+      margin: 0.5em 0;
       font-weight: bold;
       letter-spacing: 0.5px;
     }
 
-    .user {
-      color: var(--accent);
-    }
-
     .assistant {
       color: var(--text);
+      margin: 0.5em 0;
+      font-weight: bold;
+      letter-spacing: 0.5px;
     }
 
     .older {
@@ -72,6 +78,7 @@
       flex-direction: column;
       gap: 1em;
       margin-top: 20px;
+      padding-bottom: 20px;
     }
 
     input[type="text"] {
@@ -79,9 +86,9 @@
       font-family: 'Source Code Pro', monospace;
       font-size: 14px;
       color: var(--green);
-      border: none;
-      outline: none;
       border: 2px solid transparent;
+      outline: none;
+      width: 100%;
       transition: border 0.3s ease;
     }
 
@@ -113,32 +120,32 @@
 
     code {
       font-family: 'Source Code Pro', monospace;
-      background: #f5f5f5;
-      padding: 2px 4px;
       color: var(--green);
+      white-space: pre-wrap;
     }
 
     pre {
       font-family: 'Source Code Pro', monospace;
-      background: #f5f5f5;
-      padding: 10px;
-      overflow-x: auto;
       color: var(--green);
-      position: relative;
-      margin-top: 8px;
+      padding: 0;
+      margin: 10px 0 4px 0;
     }
 
     .copy-button {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      background: var(--green);
-      color: white;
+      background: transparent;
+      color: var(--accent);
       border: none;
-      padding: 3px 8px;
+      border-bottom: 2px solid var(--accent);
+      padding: 6px 12px;
       font-size: 12px;
       cursor: pointer;
       font-family: 'Poppins', sans-serif;
+      margin-bottom: 20px;
+    }
+
+    .copy-button:hover {
+      background: var(--accent);
+      color: white;
     }
 
     ::-webkit-scrollbar {
@@ -437,24 +444,25 @@ TRUNCATED FOR SPACE
       const contentDiv = document.createElement("div");
       contentDiv.style.fontWeight = '300';
       contentDiv.style.whiteSpace = 'pre-wrap';
-      contentDiv.style.fontFamily = 'Poppins, sans-serif';
 
-      const formattedText = text
-        .replace(/```([^`]+)```/gs, '<pre><code>$1</code><button class="copy-button">Copy</button></pre>')
-        .replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Format content with code blocks and line breaks
+      const codeBlockRegex = /```(?:\w*\n)?([\s\S]*?)```/g;
+      let html = text.replace(codeBlockRegex, (match, code) => {
+        return `<pre><code>${code.trim()}</code></pre><button class="copy-button">Copy</button>`;
+      });
+
+      html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
       if (animated && role === "assistant") {
-        let index = 0;
-        function typeChar() {
-          contentDiv.innerHTML = formattedText.slice(0, index++);
+        let i = 0;
+        function typeWriter() {
+          contentDiv.innerHTML = html.slice(0, i++);
           chatContainer.scrollTop = chatContainer.scrollHeight;
-          if (index < formattedText.length) {
-            requestAnimationFrame(typeChar);
-          }
+          if (i <= html.length) requestAnimationFrame(typeWriter);
         }
-        requestAnimationFrame(typeChar);
+        typeWriter();
       } else {
-        contentDiv.innerHTML = formattedText;
+        contentDiv.innerHTML = html;
       }
 
       div.appendChild(contentDiv);
@@ -476,7 +484,11 @@ TRUNCATED FOR SPACE
           const code = btn.previousElementSibling.innerText;
           navigator.clipboard.writeText(code);
           btn.innerText = "Copied!";
-          setTimeout(() => btn.innerText = "Copy", 1000);
+          chatContainer.classList.add("flash");
+          setTimeout(() => {
+            btn.innerText = "Copy";
+            chatContainer.classList.remove("flash");
+          }, 800);
         };
       });
     }
