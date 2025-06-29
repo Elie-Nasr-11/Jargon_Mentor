@@ -29,13 +29,13 @@
       width: 90%;
       max-width: 900px;
       margin: 0 auto;
-      padding: 40px 0 120px; /* bottom space for fixed input */
+      padding: 40px 0;
     }
 
     #chat-container {
       font-family: 'Poppins', sans-serif;
       font-weight: 300;
-      min-height: 400px;
+      height: 600px;
       overflow-y: auto;
       background: #ffffff;
       padding: 1em;
@@ -45,7 +45,7 @@
     }
 
     #chat-container.flash {
-      border: 2px solid #00cc66;
+      border: 2px solid var(--green);
     }
 
     .user {
@@ -67,63 +67,32 @@
       opacity: 0.8;
     }
 
-    .code-block {
-      font-family: 'Source Code Pro', monospace;
-      color: var(--green);
-      white-space: pre-wrap;
-      padding: 1rem;
-      border: 1px solid var(--green);
-      position: relative;
-      margin-bottom: 2rem;
-    }
-
-    .copy-button {
-      background: transparent;
-      color: var(--accent);
-      border: none;
-      border-bottom: 2px solid var(--accent);
-      padding: 6px 12px;
-      font-size: 12px;
-      cursor: pointer;
-      font-family: 'Poppins', sans-serif;
-      margin-top: 1rem;
-    }
-
-    .copy-button:hover {
-      background: var(--accent);
-      color: white;
-    }
-
-    #chat-form {
-      position: fixed;
-      bottom: 25%;
-      left: 0;
-      width: 100%;
+    form {
       display: flex;
-      justify-content: center;
-      background: var(--bg);
-      padding: 1em 0;
-    }
-
-    #form-wrapper {
-      display: flex;
-      gap: 10px;
-      width: 90%;
-      max-width: 900px;
+      flex-direction: column;
+      gap: 1em;
+      margin-top: 100px;
     }
 
     textarea {
-      flex: 1;
+      resize: none;
       padding: 1em;
       font-family: 'Source Code Pro', monospace;
       font-size: 14px;
       color: var(--green);
-      border: 2px solid var(--accent);
+      border: none;
       outline: none;
-      max-height: 5.4em;
+      border: 2px solid transparent;
+      transition: border 0.3s ease;
+      overflow-wrap: break-word;
+      max-height: 150px;
       overflow-y: auto;
-      line-height: 1.8;
-      resize: none;
+      min-height: 50px;
+      line-height: 1.5em;
+    }
+
+    textarea.flash-border {
+      border: 2px solid var(--green) !important;
     }
 
     textarea::placeholder {
@@ -131,6 +100,8 @@
     }
 
     button {
+      width: 100px;
+      align-self: flex-start;
       padding: 12px 24px;
       border: none;
       border-bottom: 2px solid var(--accent);
@@ -142,6 +113,32 @@
     }
 
     button:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    pre {
+      font-family: 'Source Code Pro', monospace;
+      padding: 12px;
+      overflow-x: auto;
+      color: var(--green);
+      position: relative;
+      margin-bottom: 1.5em;
+      border: 2px solid var(--green);
+    }
+
+    .copy-button {
+      background: transparent;
+      color: var(--accent);
+      font-weight: bold;
+      border: none;
+      border-bottom: 2px solid var(--accent);
+      margin-top: 10px;
+      font-family: 'Poppins', sans-serif;
+      cursor: pointer;
+    }
+
+    .copy-button:hover {
       background: var(--accent);
       color: white;
     }
@@ -159,14 +156,12 @@
 <body>
   <div class="container">
     <div id="chat-container"></div>
-  </div>
 
-  <form id="chat-form">
-    <div id="form-wrapper">
-      <textarea id="user-input" rows="1" placeholder="Message Jargon" oninput="adjustHeight(this)"></textarea>
+    <form id="chat-form">
+      <textarea id="user-input" rows="1" placeholder="Message Jargon"></textarea>
       <button type="submit">Send</button>
-    </div>
-  </form>
+    </form>
+  </div>
 
   <script>
     const chatContainer = document.getElementById("chat-container");
@@ -445,12 +440,14 @@ TRUNCATED FOR SPACE
       contentDiv.style.fontWeight = '300';
       contentDiv.style.whiteSpace = 'pre-wrap';
 
-      // Replace code blocks and inline code
-      let formattedText = text
-        .replace(/```([\s\S]*?)```/g, (match, code) => {
-          return `<div class="code-block"><code>${code}</code><button class="copy-button" onclick="copyText(\`${code.replace(/`/g, '\\`')}\`, this)">Copy</button></div>`;
-        })
-        .replace(/`([^`]+)`/g, '<code>$1</code>');
+      // Format triple backtick code blocks and copy buttons
+      const codeBlockRegex = /```([^`]+)```/gs;
+      let formattedText = text.replace(codeBlockRegex, (match, code) => {
+        return `<pre><code>${code}</code><button class="copy-button">Copy</button></pre>`;
+      });
+
+      // Format inline code
+      formattedText = formattedText.replace(/`([^`]+)`/g, '<code>$1</code>');
 
       if (animated && role === "assistant") {
         let index = 0;
@@ -474,22 +471,25 @@ TRUNCATED FOR SPACE
         chatContainer.classList.add("flash");
         setTimeout(() => chatContainer.classList.remove("flash"), 300);
       }
+
+      setTimeout(addCopyListeners, 100);
     }
 
-    function copyText(text, button) {
-      navigator.clipboard.writeText(text).then(() => {
-        button.textContent = "Copied!";
-        button.parentElement.style.border = "2px solid var(--green)";
-        setTimeout(() => {
-          button.textContent = "Copy";
-          button.parentElement.style.border = "1px solid var(--green)";
-        }, 1000);
+    function addCopyListeners() {
+      const buttons = document.querySelectorAll(".copy-button");
+      buttons.forEach(btn => {
+        btn.onclick = () => {
+          const code = btn.previousElementSibling.innerText;
+          navigator.clipboard.writeText(code).then(() => {
+            btn.innerText = "Copied!";
+            btn.style.borderColor = "#27c147";
+            setTimeout(() => {
+              btn.innerText = "Copy";
+              btn.style.borderColor = "#c42d88";
+            }, 1000);
+          });
+        };
       });
-    }
-
-    function adjustHeight(el) {
-      el.style.height = "auto";
-      el.style.height = (el.scrollHeight > 90 ? 90 : el.scrollHeight) + "px";
     }
 
     async function sendMessage(event) {
@@ -501,7 +501,8 @@ TRUNCATED FOR SPACE
       chatHistory.push({ role: "user", content: message });
 
       inputField.value = "";
-      adjustHeight(inputField);
+      inputField.classList.add("flash-border");
+      setTimeout(() => inputField.classList.remove("flash-border"), 300);
 
       const res = await fetch("/.netlify/functions/chat", {
         method: "POST",
@@ -517,6 +518,11 @@ TRUNCATED FOR SPACE
     }
 
     document.getElementById("chat-form").addEventListener("submit", sendMessage);
+
+    inputField.addEventListener("input", function () {
+      this.style.height = "auto";
+      this.style.height = (this.scrollHeight > 150 ? 150 : this.scrollHeight) + "px";
+    });
 
     inputField.addEventListener("keydown", function(e) {
       if (e.key === "Enter" && !e.shiftKey) {
