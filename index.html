@@ -10,12 +10,12 @@
       --bg: white;
       --text: #0077cc;
       --accent: #c42d88;
-      --green-hover: #81be79;
-      --green-light: #bddbb7;
+      --green-hover: #27c147;
     }
 
     * {
       box-sizing: border-box;
+      border-radius: 0 !important;
     }
 
     html, body {
@@ -39,6 +39,7 @@
       padding: 1em;
       border: 2px solid transparent;
       transition: border 0.3s ease;
+      white-space: pre-wrap;
     }
 
     #chat-container.flash {
@@ -77,11 +78,16 @@
       font-size: 14px;
       color: var(--green-hover);
       border: none;
-      border-bottom: 2px solid var(--accent);
       outline: none;
+      border: 2px solid transparent;
+      transition: border 0.3s ease;
     }
 
-    input[type="text"]::placeholder {
+    input.flash-border {
+      border: 2px solid var(--accent) !important;
+    }
+
+    input::placeholder {
       color: var(--green-hover);
     }
 
@@ -110,7 +116,6 @@
 
     ::-webkit-scrollbar-thumb {
       background-color: var(--text);
-      border-radius: 10px;
     }
   </style>
 </head>
@@ -125,6 +130,9 @@
   </div>
 
   <script>
+    const chatContainer = document.getElementById("chat-container");
+    const inputField = document.getElementById("user-input");
+
     let chatHistory = [
       {
         role: "system",
@@ -383,37 +391,55 @@ TRUNCATED FOR SPACE
       }
     ];
 
-    function appendMessage(role, text) {
-      const container = document.getElementById("chat-container");
-
+    function appendMessage(role, text, animated = false) {
       const div = document.createElement("div");
       const label = (role === "user") ? "You: " : "Jargon Mentor: ";
       const className = (role === "user") ? "user" : "assistant";
 
-      // Fade older messages
-      const previous = container.querySelectorAll("div");
+      // Fade old
+      const previous = chatContainer.querySelectorAll("div");
       previous.forEach(el => el.classList.add("older"));
 
       div.className = className;
-      div.textContent = label + text;
-      container.appendChild(div);
+      div.innerText = label;
 
-      container.scrollTop = container.scrollHeight;
+      const contentSpan = document.createElement("span");
+
+      if (animated && role === "assistant") {
+        let index = 0;
+        function typeChar() {
+          if (index < text.length) {
+            contentSpan.textContent += text[index++];
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            requestAnimationFrame(typeChar);
+          }
+        }
+        requestAnimationFrame(typeChar);
+      } else {
+        contentSpan.textContent = text;
+      }
+
+      div.appendChild(contentSpan);
+      chatContainer.appendChild(div);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
       if (role === "assistant") {
-        container.classList.add("flash");
-        setTimeout(() => container.classList.remove("flash"), 300);
+        chatContainer.classList.add("flash");
+        setTimeout(() => chatContainer.classList.remove("flash"), 300);
       }
     }
 
     async function sendMessage(event) {
       event.preventDefault();
-      const input = document.getElementById("user-input");
-      const message = input.value.trim();
+      const message = inputField.value.trim();
       if (!message) return;
 
       appendMessage("user", message);
       chatHistory.push({ role: "user", content: message });
-      input.value = "";
+
+      inputField.value = "";
+      inputField.classList.add("flash-border");
+      setTimeout(() => inputField.classList.remove("flash-border"), 300);
 
       const res = await fetch("/.netlify/functions/chat", {
         method: "POST",
@@ -424,11 +450,18 @@ TRUNCATED FOR SPACE
       const data = await res.json();
       const reply = data.reply;
 
-      appendMessage("assistant", reply);
+      appendMessage("assistant", reply, true);
       chatHistory.push({ role: "assistant", content: reply });
     }
 
     document.getElementById("chat-form").addEventListener("submit", sendMessage);
+
+    inputField.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("chat-form").requestSubmit();
+      }
+    });
   </script>
 </body>
 </html>
