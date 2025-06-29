@@ -29,7 +29,7 @@
       width: 90%;
       max-width: 900px;
       margin: 0 auto;
-      padding-top: 40px;
+      padding: 40px 0;
     }
 
     #chat-container {
@@ -42,11 +42,10 @@
       border: 2px solid transparent;
       transition: border 0.3s ease;
       white-space: pre-wrap;
-      margin-bottom: 40px;
     }
 
     #chat-container.flash {
-      border: 2px solid var(--green);
+      border: 2px solid #00cc66;
     }
 
     .user {
@@ -72,8 +71,7 @@
       display: flex;
       flex-direction: column;
       gap: 1em;
-      margin-top: 10px;
-      padding-bottom: 50px;
+      margin-top: 20px;
     }
 
     textarea {
@@ -86,10 +84,9 @@
       border: 2px solid transparent;
       transition: border 0.3s ease;
       resize: none;
+      overflow-y: auto;
       min-height: 3em;
       max-height: 6em;
-      overflow-y: auto;
-      line-height: 1.4em;
     }
 
     textarea.flash-border {
@@ -120,32 +117,31 @@
 
     code {
       font-family: 'Source Code Pro', monospace;
-      background: none;
       color: var(--green);
     }
 
     pre {
       font-family: 'Source Code Pro', monospace;
-      border: 2px solid var(--green);
       padding: 10px;
       overflow-x: auto;
       color: var(--green);
+      border: 2px solid var(--green);
+      margin-bottom: 1em;
+      margin-top: 1em;
       position: relative;
-      margin-bottom: 6px;
-      margin-top: 10px;
-      background: none;
     }
 
     .copy-button {
-      margin-bottom: 20px;
-      padding: 12px 24px;
-      border: none;
-      border-bottom: 2px solid var(--accent);
+      display: inline-block;
+      margin-top: 0.5em;
+      padding: 6px 18px;
       background: transparent;
       color: var(--accent);
-      font-weight: bold;
+      border: none;
+      border-bottom: 2px solid var(--accent);
       font-family: 'Poppins', sans-serif;
       cursor: pointer;
+      font-size: 14px;
     }
 
     .copy-button:hover {
@@ -451,15 +447,15 @@ TRUNCATED FOR SPACE
       contentDiv.style.whiteSpace = 'pre-wrap';
 
       let formattedText = text
-        .replace(/```([^`]+)```/gs, (match, code) => {
-          return `<pre><code>${code}</code></pre><button class="copy-button">Copy</button>`;
-        })
+        .replace(/```(.*?)```/gs, (_, code) =>
+          `<pre><code>${code}</code><br><button class="copy-button">Copy</button></pre>`
+        )
         .replace(/`([^`]+)`/g, '<code>$1</code>');
 
       if (animated && role === "assistant") {
         let index = 0;
         function typeChar() {
-          if (index < formattedText.length) {
+          if (index <= formattedText.length) {
             contentDiv.innerHTML = formattedText.slice(0, index++);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             requestAnimationFrame(typeChar);
@@ -479,20 +475,19 @@ TRUNCATED FOR SPACE
         setTimeout(() => chatContainer.classList.remove("flash"), 300);
       }
 
-      setTimeout(addCopyListeners, 100);
+      setTimeout(addCopyListeners, 300);
     }
 
     function addCopyListeners() {
       const buttons = document.querySelectorAll(".copy-button");
       buttons.forEach(btn => {
         btn.onclick = () => {
-          const codeEl = btn.previousElementSibling;
-          if (codeEl && codeEl.tagName === "PRE") {
-            const text = codeEl.innerText;
-            navigator.clipboard.writeText(text);
-            btn.innerText = "Copied!";
-            setTimeout(() => btn.innerText = "Copy", 1000);
-          }
+          const code = btn.parentElement.querySelector("code").innerText;
+          navigator.clipboard.writeText(code);
+          btn.innerText = "Copied!";
+          setTimeout(() => btn.innerText = "Copy", 1000);
+          btn.parentElement.style.borderColor = "#00cc66";
+          setTimeout(() => btn.parentElement.style.borderColor = "var(--green)", 600);
         };
       });
     }
