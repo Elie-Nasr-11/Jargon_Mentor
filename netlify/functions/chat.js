@@ -263,14 +263,11 @@ TRUNCATED FOR SPACE
 exports.handler = async function (event, context) {
   try {
     const body = JSON.parse(event.body);
-    const userMessage = body.message;
+    const chatHistory = body.messages;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: userMessage },
-      ],
+      messages: chatHistory
     });
 
     const reply = completion.choices?.[0]?.message?.content || "No response.";
