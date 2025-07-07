@@ -9,6 +9,15 @@ exports.handler = async function (event, context) {
     const body = JSON.parse(event.body);
     const chatHistory = body.messages;
 
+    const generalPrompt = {
+      role: "system",
+      content: "You are the Jargon Mentor — a warm, curious, slightly strict guide..."
+    };
+    
+    if (!chatHistory.find(msg => msg.content.includes("You are the Jargon Mentor"))) {
+      chatHistory.unshift(generalPrompt);
+    }
+
     const systemMessage = chatHistory.find(m => m.role === "system");
 
     const completion = await openai.chat.completions.create({
