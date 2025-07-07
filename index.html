@@ -167,6 +167,25 @@
     ::-webkit-scrollbar-thumb {
       background-color: var(--text);
     }
+
+    select#lessonSelector {
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      padding: 10px;
+      margin-top: 1rem;
+      border: 2px solid var(--accent);
+      color: var(--text);
+      background-color: white;
+      border-radius: 4px;
+      outline: none;
+      width: 100%;
+      max-width: 300px;
+    }
+    
+    select#lessonSelector:focus {
+      border-color: var(--green);
+    }
+    
   </style>
 </head>
 <body>
@@ -181,7 +200,7 @@
       <option value="lesson4">Lesson 4: Memory</option>
       <option value="lesson5">Lesson 5: Exchanging Signals</option>
     </select>
-   
+    
     <form id="chat-form">
       <textarea id="user-input" placeholder="Message Jargon" rows="1"></textarea>
       <button type="submit">Send</button>
@@ -445,6 +464,8 @@ The Internet:
     event.preventDefault();
     const message = inputField.value.trim();
     if (!message) return;
+
+    inputField.value = ""; 
   
     appendMessage("user", message);
     chatHistory.push({ role: "user", content: message });
