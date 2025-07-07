@@ -96,6 +96,8 @@ async function sendMessage(event) {
   const message = inputField.value.trim();
   if (!message) return;
 
+  inputField.value = "";
+
   appendMessage("user", message);
   chatHistory.push({ role: "user", content: message });
 
