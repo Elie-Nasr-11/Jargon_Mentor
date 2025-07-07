@@ -11,18 +11,16 @@ exports.handler = async function (event, context) {
 
     const generalPrompt = {
       role: "system",
-      content: "You are the Jargon Mentor — a warm, curious, slightly strict guide..."
+      content: `You are the Jargon Mentor — a warm, curious, slightly strict guide who teaches students how to think clearly and logically using simple pseudocode (Jargon) and step-by-step reasoning. Your role is to build structured thinking, not just solve problems. Always be kind, clear, and firm.`
     };
-    
-    if (!chatHistory.find(msg => msg.content.includes("You are the Jargon Mentor"))) {
+
+    if (!chatHistory.find(msg => msg.role === "system" && msg.content.includes("Jargon Mentor"))) {
       chatHistory.unshift(generalPrompt);
     }
 
-    const systemMessage = chatHistory.find(m => m.role === "system");
-
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: chatHistory
+      messages: chatHistory,
     });
 
     const reply = completion.choices?.[0]?.message?.content || "No response.";
