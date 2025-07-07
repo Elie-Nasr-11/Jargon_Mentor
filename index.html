@@ -192,23 +192,162 @@
   const lessonPrompts = {
     lesson1: {
       title: "Purpose",
-      systemPrompt: `You are the Lesson 1 Mentor from Book F Chapter 1... (trimmed)`
+      systemPrompt: `Technology is any tool or machine that is made to serve a purpose. Each is used to perform a particular task.
+
+Examples:
+- Hammer: hammers in nails.
+- Screwdriver: drives in screws.
+- Car: transports few people.
+- Bus: transports many people.
+- Space shuttle: flies people to space.
+- Airplane: flies people to different locations on Earth.
+
+The computer is a form of technology. Personal computers (PCs) are general-purpose technology. There are four types:
+- Desktop
+- Laptop
+- Tablet
+- Smartphone
+
+Uses of personal computers:
+- Reading e-books
+- Playing games
+- Watching videos
+- Studying, online classes, homework
+- Work: doctors, teachers, artists
+- Communication: video chatting, online classes
+
+Specific-purpose computers:
+- Embedded computers: control the machines they’re inside (e.g., elevator, car engine, brakes).
+- Servers: handle many small requests from clients (e.g., YouTube, Amazon).
+- Supercomputers: handle one big problem (e.g., weather prediction).
+
+Summary:
+- General-purpose tech = many uses (e.g., PCs)
+- Specific-purpose tech = one main task (e.g., embedded computers)
+- Four computer types: embedded, personal, servers, supercomputers
+`
     },
     lesson2: {
       title: "Systems & Signals",
-      systemPrompt: `You are the Lesson 2 Mentor...`
+      systemPrompt: `A system is something made of parts working together to serve a purpose or cause change.
+
+Examples:
+- Bicycle: foot pressure → spinning wheel
+- Human: hearing a question → responding with speech
+- Computer: key press → letters on screen
+
+A signal is a message in physical form (e.g., sound, light, pressure).
+
+Input: capturing a signal
+Output: emitting a signal
+
+Personal computers have:
+Input devices:
+- Keyboard, mouse, touchpad (pressure)
+- Microphone (sound)
+- Camera (light)
+
+Output devices:
+- Screen (light)
+- Speaker (sound)
+- Vibration motor (pressure)
+
+Humans:
+Input: ears, eyes, skin
+Output: mouth (speech), arms and legs (movement)
+
+Embedded computers:
+- Use sensors (e.g., infrared, heat)
+- Use input panels
+- Use actuators (motors for movement/output)
+
+Example: Elevator
+- Inputs: button panel, door sensors
+- Outputs: screen, speaker, motor that moves doors or cabin
+`
     },
     lesson3: {
       title: "Signal Processing",
-      systemPrompt: `You are the Lesson 3 Mentor...`
+      systemPrompt: `Processing = changing input signals to output signals using the processor.
+
+Processors only understand electronic signals. Input devices convert physical signals (sound, light, pressure) into electronic signals. Output devices do the reverse.
+
+The interface is the boundary where this translation happens.
+- Auditory interface = sound signals
+- Visual interface = light signals
+
+Examples:
+- Microphone hears “Hey Siri” (sound → electronic)
+- Processor processes
+- Speaker says “How can I help you?” (electronic → sound)
+
+Actuators (in embedded systems) produce physical movement, not signals.
+- Elevator motor moves doors or cabin
+
+Humans process signals too:
+- Eyes, ears, skin → brain → limbs, mouth
+- But use action potential signals (not electronic)
+`
     },
     lesson4: {
       title: "Memory",
-      systemPrompt: `You are the Lesson 4 Mentor...`
+      systemPrompt: `Memory holds signals inside the computer.
+
+Main Memory:
+- Holds input signals before processing
+- Holds output signals after processing
+- Volatile (erased when power is off)
+
+Storage:
+- Non-volatile (data saved even when power is off)
+- Larger than main memory
+- Stores files and processed data
+
+Example:
+Leena takes a photo:
+- Camera → main memory → processor → screen (display)
+- Then: saved → storage
+- Later: loaded back to memory from storage
+
+Drives:
+- HDD (Hard Disk Drive): magnetic disks, larger and heavier
+- SSD (Solid State Drive): microchips, smaller and lighter
+
+Main memory is limited; storage helps keep unused signals safe.
+`
     },
     lesson5: {
       title: "Exchanging Signals",
-      systemPrompt: `You are the Lesson 5 Mentor...`
+      systemPrompt: `Systems can exchange signals across an interface.
+
+For signal exchange:
+1. Signals must be able to travel.
+2. Each system must understand the signals.
+
+Human-computer:
+- Via user interface (sound, light, pressure)
+
+Computer-computer:
+- Use radio wave signals or cables
+
+Wireless Technologies:
+- Bluetooth: short distance (up to 10m)
+- WiFi: medium (up to 100m)
+- Cellular: long (up to 1000m)
+
+Wired Interfaces:
+- Use network cables, electronic signals
+- Use network ports
+
+Access points:
+- Gateway device (WiFi)
+- Cell tower (Cellular)
+
+The Internet:
+- A system that carries signals across long distances
+- Computers send signals through antennas (wireless) or ports (wired)
+- Example: Sarah watching YouTube (smartphone ↔ cell tower ↔ Internet ↔ server)
+`
     }
   };
   
@@ -239,12 +378,67 @@
     setLesson(e.target.value);
   });
   
-  function appendMessage(role, text) {
+  function appendMessage(role, text, animated = false) {
     const div = document.createElement("div");
-    div.className = role;
-    div.textContent = (role === "user" ? "You: " : "Mentor: ") + text;
+    const label = (role === "user") ? "You: " : "Jargon Mentor: ";
+    const className = (role === "user") ? "user" : "assistant";
+  
+    const previous = chatContainer.querySelectorAll("div");
+    previous.forEach(el => el.classList.add("older"));
+  
+    div.className = className;
+    div.textContent = label;
+  
+    const contentDiv = document.createElement("div");
+    contentDiv.style.fontWeight = '300';
+    contentDiv.style.whiteSpace = 'pre-wrap';
+  
+    let formattedText = text
+      .replace(/```(\\w+)?\\n?([^`]+)```/gs, (_, lang, code) =>
+        `<pre><code>${lang ? lang + '\\n' : ''}${code}</code></pre><button class='copy-button'>Copy</button>`)
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  
+    if (animated && role === "assistant") {
+      let index = 0;
+      const full = formattedText;
+      chatContainer.classList.add("flash");
+  
+      function typeChar() {
+        contentDiv.innerHTML = full.slice(0, index++);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+        if (index <= full.length) requestAnimationFrame(typeChar);
+        else {
+          chatContainer.classList.remove("flash");
+          setTimeout(addCopyListeners, 100);
+        }
+      }
+  
+      requestAnimationFrame(typeChar);
+    } else {
+      contentDiv.innerHTML = formattedText;
+      setTimeout(addCopyListeners, 100);
+    }
+  
+    div.appendChild(contentDiv);
     chatContainer.appendChild(div);
     chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+  
+  function addCopyListeners() {
+    const buttons = document.querySelectorAll(".copy-button");
+    buttons.forEach(btn => {
+      btn.onclick = () => {
+        const codeBlock = btn.previousElementSibling.querySelector("code");
+        if (codeBlock) {
+          navigator.clipboard.writeText(codeBlock.innerText)
+            .then(() => {
+              btn.innerText = "Copied!";
+              btn.style.borderColor = "var(--accent)";
+              setTimeout(() => btn.innerText = "Copy", 1000);
+            });
+        }
+      };
+    });
   }
   
   async function sendMessage(event) {
@@ -255,7 +449,8 @@
     appendMessage("user", message);
     chatHistory.push({ role: "user", content: message });
   
-    inputField.value = "";
+    inputField.classList.add("flash-border");
+    setTimeout(() => inputField.classList.remove("flash-border"), 300);
   
     const response = await fetch("/.netlify/functions/chat", {
       method: "POST",
@@ -266,11 +461,24 @@
     const data = await response.json();
     const reply = data.reply;
   
-    appendMessage("assistant", reply);
+    appendMessage("assistant", reply, true);
     chatHistory.push({ role: "assistant", content: reply });
   }
   
   document.getElementById("chat-form").addEventListener("submit", sendMessage);
+    inputField.addEventListener("input", function () {
+    this.style.height = "auto";
+    this.style.height = Math.min(this.scrollHeight, 130) + "px";
+  });
+  
+  inputField.addEventListener("keydown", function (e) {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      this.setRangeText("  ", start, end, "end");
+    }
+  });
   </script>
 </body>
 </html>
