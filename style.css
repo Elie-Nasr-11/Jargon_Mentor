@@ -1,17 +1,161 @@
-body {
-  font-family: sans-serif;
-  max-width: 600px;
-  margin: 2rem auto;
+:root {
+  --bg: white;
+  --text: #0077cc;
+  --accent: #c42d88;
+  --green: #27c147;
 }
-#chat {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  height: 300px;
+
+* {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+}
+
+html, body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.container {
+  width: 90%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-top: 40px;
+  padding-bottom: 120px;
+}
+
+#chat-container {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 300;
+  height: 600px;
   overflow-y: auto;
+  background: #ffffff;
+  padding: 1em;
+  border: 2px solid transparent;
+  transition: border 0.3s ease;
   white-space: pre-wrap;
-  margin-bottom: 1rem;
+  font-size: 14.5px;
+  line-height: 1.5;
 }
-#input {
-  width: 100%;
-  padding: 0.5rem;
+
+#chat-container.flash {
+  border: 2px solid var(--green);
+}
+
+.user {
+  color: var(--accent);
+  margin: 0.5em 0;
+  font-weight: bold;
+}
+
+.assistant {
+  color: var(--text);
+  margin: 0.5em 0;
+  font-weight: bold;
+}
+
+.older {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  margin-top: 40px;
+  position: relative;
+  top: 0;
+}
+
+textarea {
+  padding: 1em;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 14px;
+  color: var(--green);
+  border: none;
+  outline: none;
+  resize: none;
+  overflow-y: auto;
+  min-height: 20px;
+  max-height: 130px;
+  line-height: 1.5;
+  border: 2px solid transparent;
+  transition: border 0.3s ease;
+}
+
+textarea.flash-border {
+  border: 2px solid var(--green) !important;
+}
+
+textarea::placeholder {
+  color: var(--green);
+}
+
+button {
+  width: 100px;
+  align-self: flex-start;
+  padding: 12px 24px;
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--accent);
+  color: white;
+}
+
+code {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 13px;
+  background: transparent;
+  padding: 2px 4px;
+  color: var(--green);
+}
+
+pre {
+  font-family: 'Source Code Pro', monospace;
+  font-size: 13px;
+  background: transparent;
+  padding: 10px;
+  border: 2px solid var(--green);
+  overflow-x: auto;
+  color: var(--green);
+  position: relative;
+  margin: 12px 0 8px;
+  white-space: pre-wrap;
+}
+
+.copy-button {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  color: var(--accent);
+  padding: 12px 24px;
+  font-weight: bold;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.copy-button:hover {
+  background: var(--accent);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--text);
 }
