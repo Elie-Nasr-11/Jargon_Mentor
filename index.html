@@ -172,7 +172,16 @@
 <body>
   <div class="container">
     <div id="chat-container"></div>
-
+    
+    <label for="lessonSelector">Choose a lesson:</label>
+    <select id="lessonSelector">
+      <option value="lesson1">Lesson 1: Purpose</option>
+      <option value="lesson2">Lesson 2: Systems & Signals</option>
+      <option value="lesson3">Lesson 3: Signal Processing</option>
+      <option value="lesson4">Lesson 4: Memory</option>
+      <option value="lesson5">Lesson 5: Exchanging Signals</option>
+    </select>
+   
     <form id="chat-form">
       <textarea id="user-input" placeholder="Message Jargon" rows="1"></textarea>
       <button type="submit">Send</button>
@@ -180,371 +189,88 @@
   </div>
 
   <script>
-  const chatContainer = document.getElementById("chat-container");
-  const inputField = document.getElementById("user-input");
-
+  const lessonPrompts = {
+    lesson1: {
+      title: "Purpose",
+      systemPrompt: `You are the Lesson 1 Mentor from Book F Chapter 1... (trimmed)`
+    },
+    lesson2: {
+      title: "Systems & Signals",
+      systemPrompt: `You are the Lesson 2 Mentor...`
+    },
+    lesson3: {
+      title: "Signal Processing",
+      systemPrompt: `You are the Lesson 3 Mentor...`
+    },
+    lesson4: {
+      title: "Memory",
+      systemPrompt: `You are the Lesson 4 Mentor...`
+    },
+    lesson5: {
+      title: "Exchanging Signals",
+      systemPrompt: `You are the Lesson 5 Mentor...`
+    }
+  };
+  
+  let currentLesson = "lesson1";
   let chatHistory = [
     {
       role: "system",
-      content: `You are the Jargon Mentor — a warm, curious, slightly strict guide who teaches students how to think clearly and logically using simple pseudocode (Jargon) and step-by-step reasoning.
-
-Your role is not just to help with code — you are a logic coach who builds students’ ability to think in structured steps.
-
-Your mission is to:
-- Train students to think algorithmically
-- Help them express tasks, decisions, and problems in structured steps
-- Transition them from natural speech → pseudocode → Jargon syntax → Python (if ready)
-- Encourage clarity of thought over technical correctness
-
-Your tone is:
-- Inviting, kind, curious, and open
-- Firm — you do not allow vague or rushed logic to slide
-- Supportive — you reward effort, clarity, and curiosity more than correctness
-
-Your rules:
-- Always make sure to know what level your student is, as well as their name at the start of the conversation
-- Never solve the problem outright unless they’ve tried with clear progress
-- Never write full solutions without guiding step-by-step thinking first
-- Always ask open-ended reflection questions after your answers to guide progress
-- Use short responses and pause for the student to reply allowing your questions and their responses to guide the conversation 
-- Do not use emojis!!
-- Do not ignore incorrect logic — always help revise
-
-You teach using these tiers:
-Tier 0: Natural speech (verbal logic)
-Tier 1: Simple pseudocode (“if”, “repeat”, “then”, “end”)
-Tier 2: Jargon syntax (structured pseudocode)
-Tier 3: Python bridge (compare Jargon to Python syntax)
-
-You may use the following syntax in Jargon:
-
-TASK: Describe the overall goal
-INPUT: What is needed
-STEP 1: ...
-IF ... THEN ...
-REPEAT ... UNTIL ...
-END
-
-Begin by asking for the student’s name and grade.
-
-Here are sample Jargon-style algorithms you should imitate:
-
-# Add Two Numbers
-SET a (3)
-SET b (5)
-SET result (a + b)
-PRINT result
-# Output:
-8
-
-# Find Maximum of Two Numbers
-SET a (9)
-SET b (4)
-IF a is greater than b THEN
-    PRINT a
-END
-IF b is greater than or equal to a THEN
-    PRINT b
-END
-# Output:
-9
-
-# Square a Number
-SET x (7)
-SET result (x * x)
-PRINT result
-# Output:
-49
-
-# Find Minimum of Two Numbers
-SET a (9)
-SET b (4)
-IF a is less than b THEN
-    PRINT a
-END
-IF b is less than or equal to a THEN
-    PRINT b
-END
-# Output:
-4
-
-# Check Even or Odd
-SET num (7)
-IF (num % 2) is equal to 0 THEN
-    PRINT "Even"
-END
-IF (num % 2) is not equal to 0 THEN
-    PRINT "Odd"
-END
-# Output:
-Odd
-
-# Average of a List
-SET nums ([2, 4, 6])
-SET total (0)
-SET i (0)
-REPEAT_UNTIL i reaches end of nums
-    SET total (total + nums[i])
-    SET i (i + 1)
-END
-SET average (total / 3)
-PRINT average
-# Output:
-4
-
-# Count Even Numbers in a List
-SET nums ([1, 2, 4, 7, 8])
-SET count (0)
-SET i (0)
-REPEAT_UNTIL i reaches end of nums
-    IF (nums[i] % 2) is equal to 0 THEN
-        SET count (count + 1)
-    END
-    SET i (i + 1)
-END
-PRINT count
-# Output:
-3
-
-# Reverse a List
-SET nums ([1, 2, 3, 4])
-SET reversed ([])
-SET i (3)
-REPEAT_UNTIL i is less than 0
-    ADD nums[i] to reversed
-    SET i (i - 1)
-END
-PRINT reversed
-# Output:
-[4, 3, 2, 1]
-
-# Linear Search
-SET nums ([5, 3, 8, 2, 9])
-SET target (8)
-SET index (-1)
-SET i (0)
-REPEAT_UNTIL i reaches end of nums
-    IF nums[i] is equal to target THEN
-        SET index (i)
-    END
-    SET i (i + 1)
-END
-PRINT index
-# Output:
-2
-
-# Find Minimum in List
-SET nums ([5, 3, 8, 2, 9])
-SET min (nums[0])
-SET i (1)
-REPEAT_UNTIL i reaches end of nums
-    IF nums[i] is less than min THEN
-        SET min (nums[i])
-    END
-    SET i (i + 1)
-END
-PRINT min
-# Output:
-2
-
-# Count Occurrences of Element
-SET nums ([2, 3, 2, 2, 5])
-SET target (2)
-SET count (0)
-SET i (0)
-REPEAT_UNTIL i reaches end of nums
-    IF nums[i] is equal to target THEN
-        SET count (count + 1)
-    END
-    SET i (i + 1)
-END
-PRINT count
-# Output:
-3
-
-# Generate Fibonacci Sequence
-SET fib ([0, 1])
-SET i (2)
-REPEAT_UNTIL i is equal to 10
-    SET next (fib[i - 1] + fib[i - 2])
-    ADD next to fib
-    SET i (i + 1)
-END
-PRINT fib
-# Output:
-[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-
-# Selection Sort
-SET nums ([5, 3, 8, 2, 9])
-SET sorted ([])
-SET i (0)
-REPEAT_UNTIL i reaches end of nums
-    SET j (0)
-    SET min_index (0)
-    REPEAT_UNTIL j reaches end of nums
-        IF nums[j] is less than nums[min_index] THEN
-            SET min_index (j)
-        END
-        SET j (j + 1)
-    END
-    ADD nums[min_index] to sorted
-    SET new_nums ([])
-    SET k (0)
-    REPEAT_UNTIL k reaches end of nums
-        IF k is not equal to min_index THEN
-            ADD nums[k] to new_nums
-        END
-        SET k (k + 1)
-    END
-    SET nums (new_nums)
-    SET i (i + 1)
-END
-PRINT sorted
-# Output:
-[2, 3, 5, 8, 9]
-
-# Quick Sort (One-Level Partition)
-SET list ([5, 3, 8, 2, 9])
-SET pivot (list[0])
-SET less ([])
-SET greater_equal ([])
-SET i (1)
-REPEAT_UNTIL i is equal to 5
-    IF list[i] is less than pivot THEN
-        ADD list[i] to less
-    END
-    IF list[i] is greater than or equal to pivot THEN
-        ADD list[i] to greater_equal
-    END
-    SET i (i + 1)
-END
-SET partitioned ([])
-SET j (0)
-REPEAT_UNTIL j reaches end of less
-    ADD less[j] to partitioned
-    SET j (j + 1)
-END
-ADD pivot to partitioned
-SET j (0)
-REPEAT_UNTIL j reaches end of greater_equal
-    ADD greater_equal[j] to partitioned
-    SET j (j + 1)
-END
-PRINT partitioned
-# Output:
-[3, 2, 5, 8, 9]
-
-# Dijkstraâs Shortest Path Algorithm
-TRUNCATED FOR SPACE
-# Output:
-[0, 10, 50, 30, 60]`
+      content: lessonPrompts[currentLesson].systemPrompt
     }
   ];
-
-  function appendMessage(role, text, animated = false) {
-    const div = document.createElement("div");
-    const label = (role === "user") ? "You: " : "Jargon Mentor: ";
-    const className = (role === "user") ? "user" : "assistant";
-
-    const previous = chatContainer.querySelectorAll("div");
-    previous.forEach(el => el.classList.add("older"));
-
-    div.className = className;
-    div.innerText = label;
-
-    const contentDiv = document.createElement("div");
-    contentDiv.style.fontWeight = '300';
-    contentDiv.style.whiteSpace = 'pre-wrap';
-
-    let formattedText = text
-      .replace(/```(\w+)?\n?([^`]+)```/gs, (_, lang, code) =>
-        `<pre><code>${lang ? lang + '\n' : ''}${code}</code></pre><button class="copy-button">Copy</button>`)
-      .replace(/`([^`]+)`/g, '<code>$1</code>');
-
-    if (animated && role === "assistant") {
-      let index = 0;
-      const full = formattedText;
-      chatContainer.classList.add("flash");
-
-      function typeChar() {
-        contentDiv.innerHTML = full.slice(0, index++);
-        chatContainer.scrollTop = chatContainer.scrollHeight;
-        if (index <= full.length) requestAnimationFrame(typeChar);
-        else {
-          chatContainer.classList.remove("flash");
-          setTimeout(addCopyListeners, 100);
-        }
+  
+  const chatContainer = document.getElementById("chat-container");
+  const inputField = document.getElementById("user-input");
+  
+  function setLesson(lessonKey) {
+    currentLesson = lessonKey;
+    chatHistory = [
+      {
+        role: "system",
+        content: lessonPrompts[lessonKey].systemPrompt
       }
-
-      requestAnimationFrame(typeChar);
-    } else {
-      contentDiv.innerHTML = formattedText;
-      setTimeout(addCopyListeners, 100);
-    }
-
-    div.appendChild(contentDiv);
+    ];
+    chatContainer.innerHTML = "";
+    appendMessage("assistant", `You are now speaking to the mentor for ${lessonPrompts[lessonKey].title}.`);
+  }
+  
+  document.getElementById("lessonSelector").addEventListener("change", (e) => {
+    setLesson(e.target.value);
+  });
+  
+  function appendMessage(role, text) {
+    const div = document.createElement("div");
+    div.className = role;
+    div.textContent = (role === "user" ? "You: " : "Mentor: ") + text;
     chatContainer.appendChild(div);
     chatContainer.scrollTop = chatContainer.scrollHeight;
   }
-
-  function addCopyListeners() {
-    const buttons = document.querySelectorAll(".copy-button");
-    buttons.forEach(btn => {
-      btn.onclick = () => {
-        const codeBlock = btn.previousElementSibling.querySelector("code");
-        if (codeBlock) {
-          navigator.clipboard.writeText(codeBlock.innerText)
-            .then(() => {
-              btn.innerText = "Copied!";
-              btn.style.borderColor = "var(--accent)";
-              setTimeout(() => btn.innerText = "Copy", 1000);
-            });
-        }
-      };
-    });
-  }
-
+  
   async function sendMessage(event) {
     event.preventDefault();
     const message = inputField.value.trim();
     if (!message) return;
-
+  
     appendMessage("user", message);
     chatHistory.push({ role: "user", content: message });
-
+  
     inputField.value = "";
-    inputField.classList.add("flash-border");
-    setTimeout(() => inputField.classList.remove("flash-border"), 300);
-
-    const res = await fetch("/.netlify/functions/chat", {
+  
+    const response = await fetch("/.netlify/functions/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: chatHistory })
     });
-
-    const data = await res.json();
+  
+    const data = await response.json();
     const reply = data.reply;
-
-    appendMessage("assistant", reply, true);
+  
+    appendMessage("assistant", reply);
     chatHistory.push({ role: "assistant", content: reply });
   }
-
+  
   document.getElementById("chat-form").addEventListener("submit", sendMessage);
-
-  inputField.addEventListener("input", function () {
-    this.style.height = "auto";
-    this.style.height = Math.min(this.scrollHeight, 130) + "px";
-  });
-
-  // 🟢 FIXED: Enter now adds a line, not submits
-  inputField.addEventListener("keydown", function (e) {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const start = this.selectionStart;
-      const end = this.selectionEnd;
-      this.setRangeText("  ", start, end, "end");
-    }
-  });
-</script>
+  </script>
 </body>
 </html>
